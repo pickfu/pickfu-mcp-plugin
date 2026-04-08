@@ -91,6 +91,46 @@ Synthesize into a structured brief:
 - **Constraints**: [budget, timeline, country requirements]
 ```
 
+## Step 1b (optional) — Generate or Upload Test Assets
+
+If the user needs images to test but doesn't have them yet (logo concepts, packaging mockups, ad creatives), generate or upload them before designing the survey.
+
+### Generate images
+
+**MCP**: Call `generate_image` with a `prompt` and optional `aspectRatio` (1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9).
+
+**CLI**:
+```bash
+npx --yes @pickfu/cli@latest media generate --prompt "A modern minimalist logo for a pet food brand called Pawsome" --aspect-ratio 1:1 --json
+```
+
+The response includes a `url` — use it as a `media_url` option in the survey. Generate multiple variations to test against each other.
+
+### Upload existing files or URLs
+
+If the user has local files or URLs to test:
+
+**MCP**: Call `upload_media` with a `url` or local file path.
+
+**CLI**:
+```bash
+# From URL
+npx --yes @pickfu/cli@latest media upload --url https://example.com/logo-v2.png --json
+
+# From local file
+npx --yes @pickfu/cli@latest media upload --file ./logo-v2.png --json
+```
+
+The response includes a CDN `url` — use it as a `media_url` option in the survey.
+
+### Creative iteration loop
+
+After results come back (Step 5), if the user wants to iterate:
+1. Review what respondents liked/disliked about each option
+2. Generate refined versions incorporating the feedback
+3. Run a follow-up survey comparing the refined options
+4. Repeat until the user is satisfied with a winner
+
 ## Step 2 — Survey Design
 
 Based on the brief, design a multi-question survey. Present the full design for user approval before creating.
@@ -392,6 +432,85 @@ Structure the analysis report:
 - **Highlight demographic differences** if reporting was configured
 - **Be direct about the winner** — don't hedge when the data is clear
 - **Suggest follow-up research** if results raise new questions (e.g., "The logo won overall but lost with 18-24 — consider a follow-up targeting that segment")
+
+## Step 6 (optional) — Organize & Follow Up
+
+### Tag surveys
+
+Tag surveys for easy retrieval later (e.g., "q2-launch", "logo-research", "pricing-v2"):
+
+**MCP**: Call `create_tag` with `name`, then `save_survey` with `tags: ["tag-name"]` to apply.
+
+**CLI**:
+```bash
+npx --yes @pickfu/cli@latest tag create --name "q2-launch" --json
+npx --yes @pickfu/cli@latest tag list --json
+```
+
+### Organize into projects
+
+Group related surveys into a project:
+
+**MCP**: Call `save_project` with `name` and optional `description`. Then `save_survey` with `projectId` to assign.
+
+**CLI**:
+```bash
+npx --yes @pickfu/cli@latest project create --name "Brand Launch Research" --json
+npx --yes @pickfu/cli@latest project list --json
+```
+
+### Add more respondents
+
+If results are inconclusive or the user wants higher confidence, add respondents to a completed survey:
+
+**MCP**: Call `add_respondents` with the survey `id` and `count`. Use `preview: true` to show cost first.
+
+**CLI**:
+```bash
+# Preview cost before committing
+npx --yes @pickfu/cli@latest survey add-respondents <id> --count 50 --preview --json
+
+# Add respondents
+npx --yes @pickfu/cli@latest survey add-respondents <id> --count 50 --json
+```
+
+### Reference past surveys
+
+Search and retrieve previous surveys for context or comparison:
+
+**MCP**: Call `list_surveys` with optional filters (`status`, `tags`, `projectId`). Call `get_survey` for full details.
+
+**CLI**:
+```bash
+npx --yes @pickfu/cli@latest survey list --json
+npx --yes @pickfu/cli@latest survey get <id> --json
+npx --yes @pickfu/cli@latest survey responses <id> --json
+```
+
+### Edit a draft before publishing
+
+If the user wants to change a survey after creation but before publishing:
+
+**MCP**: Call `save_survey` with the `surveyId` to update.
+
+**CLI**:
+```bash
+npx --yes @pickfu/cli@latest survey update <id> --from-file updated.json --json
+```
+
+### Browse playbook templates
+
+PickFu offers pre-built research playbooks for common scenarios:
+
+**MCP**: Call `list_playbooks` (optional `industry` filter), then `get_playbook` for full step-by-step guides.
+
+**CLI**:
+```bash
+npx --yes @pickfu/cli@latest playbook list --json
+npx --yes @pickfu/cli@latest playbook get <slug> --json
+```
+
+Use playbooks as inspiration for survey design — they include recommended question types, targeting, and sample sizes for each use case.
 
 ## Error Handling
 
