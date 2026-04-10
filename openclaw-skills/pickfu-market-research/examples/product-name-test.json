@@ -1,7 +1,7 @@
 {
-  "survey_intent": "Determine the most appealing product name from a set of candidates",
+  "surveyIntent": "Determine the most appealing product name from a set of candidates",
   "country": "US",
-  "sample_size": "50",
+  "sampleSize": "50",
   "targeting": [],
   "reporting": ["gender", "age-range"],
   "questions": [

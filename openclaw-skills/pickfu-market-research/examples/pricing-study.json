@@ -1,7 +1,7 @@
 {
-  "survey_intent": "Determine optimal pricing by testing multiple price points",
+  "surveyIntent": "Determine optimal pricing by testing multiple price points",
   "country": "US",
-  "sample_size": "100",
+  "sampleSize": "100",
   "targeting": [],
   "reporting": ["gender", "age-range", "income"],
   "questions": [
