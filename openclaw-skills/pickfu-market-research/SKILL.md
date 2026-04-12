@@ -31,7 +31,7 @@ This skill can:
 
 ### 0a. Try MCP tools first
 
-Call `list_available_targeting` (read-only). If it succeeds, MCP is connected — use MCP tools for all API calls.
+Call `list_available_targeting` (read-only). If it succeeds, MCP is connected — use MCP tools for all API calls. Also read the `pickfu://guide` resource (`resources/list` → `resources/read`) for PickFu's canonical best-practices guide covering poll type selection, audience sizing, and survey design patterns.
 
 ### 0b. CLI fallback
 
@@ -94,14 +94,68 @@ To upload existing files: `npx --yes @pickfu/cli@latest media upload --file ./lo
 
 ## Step 3 — Survey Design
 
+### Start with playbooks
+
+Before drafting questions from scratch, check if PickFu has a proven playbook for this use case:
+
+**CLI**: `npx --yes @pickfu/cli@latest playbook list --json` (optionally `--industry gaming`)
+**MCP**: Call `list_playbooks` (optional `industry` filter)
+
+If a relevant playbook exists, fetch it for pre-configured question types, targeting, and sample sizes:
+**CLI**: `npx --yes @pickfu/cli@latest playbook get <slug> --json`
+**MCP**: Call `get_playbook` with the slug
+
+Use playbooks as your starting point — adapt the prompts to the user's specific product.
+
+### Context vs prompt — separate background from the question
+
+Each question has two fields that serve different purposes:
+
+- **`prompt`**: The actual question being asked. Should be short (max 255 chars), self-contained, and end with an actual question mark. Ask ONE thing.
+- **`context`** (optional): Background information shown ABOVE the question to respondents. Use for framing the scenario, product description, or any info the respondent needs. Accepts `{"text": "..."}` OR `{"mediaUrl": "..."}` (not both).
+
+**Wrong** — context stuffed into prompt, no question asked:
+```json
+{
+  "type": "ranked",
+  "prompt": "We are developing a new mobile survival game. The main character is Mad Ma, a tough weapon-wielding grandma who drives an armored combat van through a zombie apocalypse. We now have 3 new candidates to test.",
+  "options": [{"value": "Mad Ma: Survival"}, {"value": "Nanas Rage: Road Defense"}, {"value": "Granny Blitz: Road Rage"}]
+}
+```
+Respondents see a wall of text and no actual question.
+
+**Right** — context in its own field, prompt asks the question:
+```json
+{
+  "type": "ranked",
+  "prompt": "Which game name would you be most likely to download?",
+  "context": {
+    "text": "A new mobile survival game featuring Mad Ma — a tough grandma who fights zombies from an armored combat van."
+  },
+  "options": [{"value": "Mad Ma: Survival"}, {"value": "Nanas Rage: Road Defense"}, {"value": "Granny Blitz: Road Rage"}]
+}
+```
+
 ### Best practices
 
 - **One question, one concept** — don't combine two questions into one
 - **Neutral, non-leading prompts** — "Which do you prefer?" not "Which looks more professional?"
+- **Each question is shown in isolation** — respondents see one question at a time with NO visibility of other questions. NEVER write "same context as above," "referring to Q1," or "as you saw before." Each question must be fully self-contained. If it needs background, put it in THAT question's own `context` field.
 - **Match type to goal** — `head_to_head` for A/B, `ranked` for ordering 3+, `open_ended` for exploratory
 - **Keep it short** — 1-3 questions ideal, 5+ risks fatigue
 - **Use images when possible** — visual options get more engaged responses
 - **Be specific** — "Which would you click in search results?" beats "Which do you like?"
+- **Prompt must be a question** — the prompt MUST ask something. "Here's our product." is a statement. "Which product would you buy?" is a question.
+
+### Anti-patterns to avoid
+
+Real failure modes from bad surveys:
+
+1. **Prompt-as-context** — stuffing the whole product description into the prompt instead of using the `context` field. Respondents can't tell what's being asked.
+2. **Cross-question references** — writing "Same game as before" or "Referring to Q1..." Respondents see each question standalone with no visibility of other questions.
+3. **No question in the prompt** — the prompt sets up context but never asks anything. Always end with a clear question.
+4. **Multi-concept questions** — "Which logo looks most modern AND would you buy?" mixes two things. Split into two questions.
+5. **Leading prompts** — "Which of these GREAT names do you prefer?" biases the response. Keep neutral.
 
 ### Question types
 
