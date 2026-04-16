@@ -7,7 +7,7 @@
   "questions": [
     {
       "type": "five_second_test",
-      "prompt": "After seeing this image briefly, what do you think this product does?",
+      "prompt": "After seeing this image briefly, what do you think this product/service does?",
       "options": [
         { "mediaUrl": "https://example.com/concept-image.png" }
       ]

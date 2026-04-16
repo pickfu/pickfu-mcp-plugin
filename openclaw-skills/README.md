@@ -31,16 +31,16 @@ Users get updates via `openclaw skills update`.
 
 ## Dog-fooding with Polly
 
-Polly (our Survey Assistant bot) uses the same SKILL.md as the published ClawHub skill. This ensures we catch issues before external users do.
+Polly (our Survey Assistant bot) installs skills from ClawHub — the same artifact external users get. This ensures we catch install-path and runtime issues before customers do.
 
-**After editing a skill here, copy it to Polly:**
+**After publishing a new version**, update Polly:
 
 ```bash
-cp openclaw-skills/pickfu-market-research/SKILL.md \
-   persistent-bots/polly/skills/market-research/SKILL.md
+ssh polly.bots.pickfu-corp.com \
+  "sudo -u openclaw XDG_RUNTIME_DIR=/run/user/\$(id -u openclaw) openclaw skills update pickfu-market-research"
 ```
 
-Then deploy Polly to pick up the change: `./scripts/deploy.sh polly`
+Polly does NOT use a workspace copy. Do not add skill files to `persistent-bots/polly/skills/`.
 
 ## Adding a New Skill
 
@@ -48,4 +48,4 @@ Then deploy Polly to pick up the change: `./scripts/deploy.sh polly`
 2. Add `SKILL.md` (with YAML frontmatter) and `README.md` (ClawHub listing page)
 3. Optionally add `examples/` with reference files
 4. Publish via `npx clawhub skill publish`
-5. If a fleet bot should use it, copy the SKILL.md into that bot's `skills/` directory
+5. Fleet bots that should use it install via `openclaw skills install <slug>` on the VPS

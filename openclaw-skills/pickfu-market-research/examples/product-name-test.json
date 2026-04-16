@@ -7,24 +7,18 @@
   "questions": [
     {
       "type": "ranked",
-      "prompt": "Which product name would you be most likely to buy?",
-      "context": {
-        "text": "An organic energy drink made with green tea and adaptogens, targeting health-conscious adults."
-      },
+      "prompt": "Rank these product names from most to least appealing for a [product category]:",
       "options": [
-        { "value": "ZenBoost" },
-        { "value": "VitalFlow" },
-        { "value": "GreenSurge" },
-        { "value": "AdaptFuel" },
-        { "value": "TeaCharge" }
+        { "value": "Name Option A" },
+        { "value": "Name Option B" },
+        { "value": "Name Option C" },
+        { "value": "Name Option D" },
+        { "value": "Name Option E" }
       ]
     },
     {
       "type": "open_ended",
-      "prompt": "What makes your top-ranked name stand out? What does it make you think of?",
-      "context": {
-        "text": "An organic energy drink made with green tea and adaptogens, targeting health-conscious adults."
-      },
+      "prompt": "What makes your top-ranked name stand out? What associations does it create?",
       "options": []
     }
   ]
