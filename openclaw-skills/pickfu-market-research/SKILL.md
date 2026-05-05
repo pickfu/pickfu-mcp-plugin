@@ -8,6 +8,12 @@ homepage: https://www.pickfu.com
 metadata: {"openclaw":{"requires":{"bins":[],"env":["PICKFU_API_KEY"]},"primaryEnv":"PICKFU_API_KEY","emoji":"📊","homepage":"https://www.pickfu.com","os":["darwin","linux","win32"],"install":[{"kind":"node","package":"@pickfu/cli","bins":["pickfu"]}]}}
 ---
 
+<!-- Human docs:
+       ../README.md — manual `clawhub publish` step is required after editing this file
+       ../../CLAUDE.md §ClawHub Skill Publishing — overall publish + Polly update flow
+     Edits committed to this file do NOT reach end users (or Polly) until a publish.
+-->
+
 # PickFu Market Research
 
 Get real human feedback on anything — logos, names, packaging, pricing, ads, UX, book covers, Amazon listings, and more. This skill runs end-to-end consumer research: brief → design → create → publish → wait → analyze → iterate.
@@ -92,6 +98,21 @@ The response includes a `url` — use it as a `mediaUrl` option in the survey. G
 
 To upload existing files: `npx --yes @pickfu/cli@latest media upload --file ./logo.png --json` or `--url https://...`
 
+### Brand-faithful variants from a reference image
+
+If the user has an existing image (their current logo, packaging, or product
+shot) and wants variants that preserve brand identity (typography, color,
+mascot, layout) while changing one specific dimension, pass the reference:
+
+**CLI**: `npx --yes @pickfu/cli@latest media generate --prompt "..." --reference-image-url https://... --aspect-ratio 1:1 --json`
+
+Use one variant per testable hypothesis (e.g., "stronger contrast", "removes
+peanut illustration", "adds protein callout") and print the hypothesis
+alongside each generated URL so the eventual survey result can be tied back
+to the design choice. Without a reference image, generated variants tend to
+hallucinate brand details (misspelled wordmarks, invented URLs, wrong
+mascot poses).
+
 ## Step 3 — Survey Design
 
 ### Best practices
@@ -173,14 +194,27 @@ npx --yes @pickfu/cli@latest survey create --from-file /tmp/survey.json --json
 
 ## Step 5 — Wait for Results
 
-Poll until complete:
+Poll until `.status == "done"`:
 
-**CLI**: `npx --yes @pickfu/cli@latest survey get <id> --json | jq '{status, responses_count}'`
-**MCP**: Call `get_survey` with the survey `id`
+**CLI** (preferred for agents):
+```bash
+until npx --yes @pickfu/cli@latest survey get <id> --json | jq -e '.status == "done"' >/dev/null; do
+  sleep 60
+done
+```
 
-Poll every 60 seconds. After 30 minutes, offer to check back later.
+**MCP**: Call `get_survey` with the survey `id` in a loop until `status === "done"`.
 
-Alternative (zero token cost): `npx --yes @pickfu/cli@latest survey watch <id> --json` — blocks at process level, but may timeout in some runtimes.
+Sample sizes of n=15 general typically complete in 20–30 minutes; n=50+ or
+heavy targeting can take several hours. If still not `done` after 4 hours,
+stop polling and surface a clear error — something is wrong (paused, no
+panel inventory, etc.).
+
+**Avoid `survey watch`** in agent harnesses. It blocks at the process level
+and runs forever, which works for a human in a terminal but breaks in
+runtimes that cap individual command duration (Claude Code's Bash tool cuts
+single commands at 10 min). The polling loop above resets that clock every
+iteration.
 
 ## Step 6 — Analyze & Report
 
