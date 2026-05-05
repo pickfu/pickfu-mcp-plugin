@@ -194,27 +194,64 @@ npx --yes @pickfu/cli@latest survey create --from-file /tmp/survey.json --json
 
 ## Step 5 — Wait for Results
 
-Poll until `.status == "done"`:
+Don't try to wait inside a single Bash command. Agent runtimes cap
+individual exec calls (OpenClaw's `exec` tool defaults to 120s; Claude
+Code's Bash tool caps at 10 min), and surveys typically take 20–30
+minutes for n=15 general and several hours for heavier samples. A
+compound `until ... do sleep 60; done` loop is one Bash invocation —
+it gets killed at the same cap, not per iteration.
 
-**CLI** (preferred for agents):
+Drive polling from outside Bash: one `survey get <id> --json` call per
+agent turn, with the agent (not Bash) handling the wait between turns.
+
+### Terminal condition
+
+**Preferred — value-based:**
+
 ```bash
-until npx --yes @pickfu/cli@latest survey get <id> --json | jq -e '.status == "done"' >/dev/null; do
-  sleep 60
-done
+npx --yes @pickfu/cli@latest survey get <id> --json | \
+  jq -e '.numResponses >= .sampleSize' >/dev/null
 ```
 
-**MCP**: Call `get_survey` with the survey `id` in a loop until `status === "done"`.
+Value-based termination is immune to status-string drift. The PickFu API
+has surfaced both `done` and `completed` as terminal states across
+endpoints (e.g. `survey list` may report `completed` while `survey get`
+reports `done` for the same survey); matching on response count avoids
+that footgun. Real incident: a status-string poll loop ran silently for
+~70 minutes because it matched on the wrong terminal string and the
+failure mode (silence) was indistinguishable from "still running."
 
-Sample sizes of n=15 general typically complete in 20–30 minutes; n=50+ or
-heavy targeting can take several hours. If still not `done` after 4 hours,
-stop polling and surface a clear error — something is wrong (paused, no
-panel inventory, etc.).
+**Fallback — status-based, defensive:**
 
-**Avoid `survey watch`** in agent harnesses. It blocks at the process level
-and runs forever, which works for a human in a terminal but breaks in
-runtimes that cap individual command duration (Claude Code's Bash tool cuts
-single commands at 10 min). The polling loop above resets that clock every
-iteration.
+```bash
+npx --yes @pickfu/cli@latest survey get <id> --json | \
+  jq -e '.status as $s | ["done","completed","stopped"] | index($s)' >/dev/null
+```
+
+Use this only if `numResponses` / `sampleSize` aren't both populated for
+the survey type. Match all three terminal states — `stopped` is terminal
+too, not just `done` / `completed`.
+
+### Cadence
+
+One poll per agent turn, ~60s between turns. n=15 general typically
+completes in 20–30 minutes; n=50+ or heavy targeting can take several
+hours. If still not terminal after 4 hours, stop polling and surface a
+clear error — paused, no panel inventory, etc.
+
+### About `survey watch`
+
+`survey watch` is the right tool when the harness is a real TTY (a human
+in a terminal). It currently has a known issue in non-TTY runtimes: its
+spinner output doesn't reach background-task buffers, so agents never
+see the "watch finished" signal. Until that's fixed, prefer the
+value-based polling pattern above for agent harnesses.
+
+### MCP equivalent
+
+Call `get_survey` once per agent turn until `numResponses >= sampleSize`,
+falling back to `status in ("done","completed","stopped")` if response
+counts aren't populated for the survey type.
 
 ## Step 6 — Analyze & Report
 
