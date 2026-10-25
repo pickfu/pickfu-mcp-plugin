@@ -10,7 +10,7 @@ Connects a Grok Bot to PickFu over remote MCP so the bot can draft polls, publis
 
 - MCP URL: `https://mcp.pickfu.com/mcp` (streamable HTTP)
 - Auth: the first time a tool runs, you'll sign in to your own PickFu account through PickFu's OAuth page. A free account works. No API key or shared credentials are needed.
-- Cost: drafting, editing and previewing polls is free. Publishing a poll, adding respondents and generating image variants spend your PickFu credits. The agent drafts first and confirms the cost before anything that spends.
+- Cost: drafting, editing and previewing polls is free. Publishing a poll, adding respondents and generating image variants spend your PickFu credits, as do synthetic feedback and Amazon listing mockup imports. The agent drafts first and confirms the cost before anything that spends.
 
 ## Components
 
