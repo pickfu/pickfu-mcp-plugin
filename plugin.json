@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pickfu-mcp",
+  "version": "0.1.0",
+  "description": "Consumer research via PickFu MCP: draft and publish polls, pull results, and summarize what real people said. Uses the importer's PickFu account (OAuth) \u2014 never auto-publishes or spends without an explicit ask.",
+  "author": {
+    "name": "PickFu",
+    "url": "https://www.pickfu.com"
+  },
+  "homepage": "https://www.pickfu.com",
+  "keywords": [
+    "pickfu",
+    "mcp",
+    "consumer-research",
+    "polls",
+    "surveys"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/pickfu/pickfu-mcp-plugin"
+}
