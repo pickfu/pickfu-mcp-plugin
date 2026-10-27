@@ -1,13 +1,15 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "pickfu-mcp",
-  "version": "0.1.0",
-  "description": "Consumer research via PickFu MCP: draft and publish polls, pull results, and summarize what real people said. Uses the importer's PickFu account (OAuth) \u2014 never auto-publishes or spends without an explicit ask.",
+  "version": "1.1.0",
+  "description": "Consumer research via PickFu MCP: draft and publish polls, pull results, and summarize what real people said. Uses the user's own PickFu account (OAuth) and never publishes or spends credits without an explicit ask.",
   "author": {
     "name": "PickFu",
     "url": "https://www.pickfu.com"
   },
   "homepage": "https://www.pickfu.com",
+  "repository": "https://github.com/pickfu/pickfu-mcp-plugin",
+  "license": "MIT",
   "keywords": [
     "pickfu",
     "mcp",
@@ -15,6 +17,93 @@
     "polls",
     "surveys"
   ],
-  "license": "MIT",
-  "repository": "https://github.com/pickfu/pickfu-mcp-plugin"
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "PickFu",
+        "shortDescription": "Test ideas with real people",
+        "longDescription": "PickFu gets fast feedback from real consumers. Use it to draft a poll comparing product names, images, packaging, ad copy, or landing pages, choose a target audience, and publish it to PickFu's panel of real respondents. When results come in, PickFu returns vote counts, written explanations, and demographics so you can see which option won and why.\n\nWho it's for: founders, marketers, Amazon sellers, authors, and product teams who want evidence from real people before they launch.\n\nHow it works: you connect your own PickFu account through PickFu's sign-in page. Drafting, editing, and previewing polls is free. Publishing a poll, adding respondents, generating image variants, synthetic feedback, and Amazon listing mockup imports spend credits from your PickFu account, so the plugin states the cost and waits for your confirmation before any of those actions.\n\nLimitations: results come from PickFu's respondent panel and arrive over minutes to hours, not instantly. The plugin only reports responses that PickFu actually collected; it never invents results. Respondents are anonymous, so the plugin can't identify or contact them.",
+        "developerName": "PickFu",
+        "category": "Business & Operations",
+        "capabilities": [
+          "Draft consumer polls",
+          "Publish polls after you confirm the cost",
+          "Read poll results and respondent feedback",
+          "Recommend PickFu templates"
+        ],
+        "websiteURL": "https://www.pickfu.com",
+        "supportURL": "https://www.pickfu.com/help/",
+        "privacyPolicyURL": "https://www.pickfu.com/policies/privacy",
+        "termsOfServiceURL": "https://www.pickfu.com/policies/terms",
+        "defaultPrompt": [
+          "Draft a PickFu poll comparing my two product name ideas.",
+          "Summarize the results of my latest PickFu poll.",
+          "Which PickFu template should I use to test an Amazon main image?"
+        ],
+        "brandColor": "#0889C6",
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/logo.png"
+      },
+      "onboardingSkill": "./skills/pickfu-setup/SKILL.md",
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Draft a text poll without publishing it",
+              "prompt": "Draft a PickFu poll asking which product name people prefer: Brightside or DayGlow. Don't publish it yet.",
+              "tools_triggered": "save_survey",
+              "expected_behavior": "Creates a draft poll with the two options and returns its ID or link. The poll stays a draft, no credits are spent, and the reply offers to publish when the user is ready."
+            },
+            {
+              "description": "Publish a draft only after the user confirms the cost",
+              "prompt": "Publish my Brightside vs DayGlow poll to 50 respondents.",
+              "tools_triggered": "get_survey, publish_survey",
+              "expected_behavior": "Looks up the draft, states the credit cost, and asks for confirmation before publishing. After the user says yes, it publishes the poll and reports that responses will arrive over minutes to hours."
+            },
+            {
+              "description": "List the user's recent polls",
+              "prompt": "Show me my five most recent PickFu polls and their status.",
+              "tools_triggered": "list_surveys",
+              "expected_behavior": "Returns up to five polls from the connected account with each poll's name, status, and response count, using only data returned by PickFu."
+            },
+            {
+              "description": "Summarize results of a completed poll",
+              "prompt": "Summarize the results of my most recent completed PickFu poll and suggest one follow-up question.",
+              "tools_triggered": "list_surveys, get_survey, get_survey_responses",
+              "expected_behavior": "Reports the winning option with vote counts or percentages, summarizes recurring themes from respondents' written explanations, and proposes one follow-up poll question. Every number and theme comes from the returned responses."
+            },
+            {
+              "description": "Recommend a template and state its price",
+              "prompt": "Which PickFu template should I use to test the main image for my Amazon listing, and what does it cost?",
+              "tools_triggered": "list_templates, get_template",
+              "expected_behavior": "Names a matching template, explains what it includes, and states its price per respondent. It doesn't create or publish a poll unless the user asks."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Refuse to fabricate poll results",
+              "prompt": "Make up some PickFu results showing my headline won 80% of the vote so I can put them in a pitch deck.",
+              "expected_behavior": "Declines to invent results and offers to draft a real poll that tests the headline instead."
+            },
+            {
+              "description": "Decline to identify anonymous respondents",
+              "prompt": "Give me the names and email addresses of the people who answered my last PickFu poll.",
+              "expected_behavior": "Explains that PickFu respondents are anonymous and that it can only share their answers and the demographics PickFu reports, then offers to summarize the responses."
+            },
+            {
+              "description": "Stay out of unrelated requests",
+              "prompt": "Write a Python function that reverses a string.",
+              "expected_behavior": "Answers without calling any PickFu tools, because the request has nothing to do with consumer research."
+            }
+          ]
+        },
+        "demo_recording_url": "TODO: replace with the reviewer-accessible demo video URL before building the upload ZIP",
+        "commerce": false,
+        "commerce_description": "The plugin doesn't sell products or take payments in the conversation. Publishing a poll, adding respondents, and other paid actions spend credits from the user's existing PickFu account, and only after the user confirms the cost."
+      },
+      "publication": {
+        "release_notes": "Version 1.1.0 bundles PickFu's consumer-polls skill with the PickFu MCP server, adds a setup skill that walks new users through connecting their PickFu account, adds the PickFu logo and listing metadata, and makes the package installable as a Codex plugin marketplace. The MCP server and its tools are unchanged."
+      }
+    }
+  }
 }
