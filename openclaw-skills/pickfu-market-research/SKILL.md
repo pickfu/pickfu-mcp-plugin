@@ -10,8 +10,7 @@ metadata: {"openclaw":{"requires":{"bins":[],"env":["PICKFU_API_KEY"]},"primaryE
 
 <!-- Human docs:
        ../README.md — manual `clawhub publish` step is required after editing this file
-       ../../CLAUDE.md §ClawHub Skill Publishing — overall publish + Polly update flow
-     Edits committed to this file do NOT reach end users (or Polly) until a publish.
+     Edits committed to this file do NOT reach end users until a publish.
 -->
 
 # PickFu Market Research
