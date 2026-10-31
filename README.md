@@ -19,6 +19,7 @@ Connects a Grok Bot to PickFu over remote MCP so the bot can draft polls, publis
 | `plugin.json` | Agent Plugins 1.0.0 manifest |
 | `mcp.json` | Remote `pickfu` server |
 | `skills/pickfu-consumer-polls/` | When to call tools; never invent results |
+| `openclaw-skills/pickfu-market-research/` | The same research flow as an [OpenClaw](https://openclaw.dev) skill, published to [ClawHub](https://clawhub.ai) (`clawhub install pickfu-market-research`). Uses the PickFu CLI + API key rather than MCP; see its [README](./openclaw-skills/README.md) for the manual publish step |
 
 ## Public-safe bar
 
